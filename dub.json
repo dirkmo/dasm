@@ -1,0 +1,9 @@
+{
+	"name": "dasm",
+	"authors": [
+		"Dirk Moeller"
+	],
+	"description": "DCPU Assembler",
+	"copyright": "Copyright © 2018, Dirk Moeller",
+	"license": "don't care license"
+}
