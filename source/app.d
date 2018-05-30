@@ -50,7 +50,7 @@ class Scanner {
         filecontents = cast(ubyte[])read(fname);
     }
 
-    void get(ref Character cc) {
+    bool get(ref Character cc) {
         pos++;
         char c = '\0';
         if( pos < filecontents.length ) {
@@ -68,6 +68,7 @@ class Scanner {
         if( pos >= filecontents.length ) {
             cc.type = Character.Type.Eof;
         }
+        return cc.type != Character.Type.Eof;
     }
 
     uint line = 0;
@@ -76,17 +77,39 @@ class Scanner {
     ubyte[] filecontents;
 }
 
+struct Token {
+    enum Type { None, Label, Mnemonic, Directive, Identifier, String, Number, Ws, Comment, Eof }
+
+    uint line;
+    uint col;
+    Type type;
+}
+
+class Lexer {
+    this(string fname) {
+        Scanner scanner = new Scanner(fname);
+        Character c;
+        while( scanner.get(c) ) {
+            if( c.type == Character.Type.DoubleQuote ) {
+                Token newToken = Token(c.line, c.col, Token.Type.String);
+                tokens ~= newToken;
+                while(scanner.get(c) && c.type != Character.Type.DoubleQuote){}
+                if( c.type != Character.Type.DoubleQuote ) {
+                    throw new Exception(format("Missing double quote %s:%s", newToken.col, newToken.line));
+                }
+            }
+        }
+    }
+    Token[] tokens;
+}
 
 int main(string[] args)
 {
-    Scanner scanner = new Scanner(args[1]);
-    
-    Character c;
-    scanner.get(c);
-    while( c.type != Character.Type.Eof ) {
-        scanner.get(c);
-        writeln(c);
+    if( args.length < 2 ) {
+        writeln("Missing argument");
+        return 1;
     }
+    Lexer lexer = new Lexer(args[1]);
 
     return 0;
 }
